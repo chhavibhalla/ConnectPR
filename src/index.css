@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* semantic raised-surface token (cards, inputs, sidebar) */
+  --color-surface: #ffffff;
+
+  --color-brand-50: #f5f3ff;
+  --color-brand-100: #ede9fe;
+  --color-brand-200: #ddd6fe;
+  --color-brand-300: #c4b5fd;
+  --color-brand-400: #a78bfa;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #7c3aed;
+  --color-brand-700: #6d28d9;
+  --color-brand-800: #5b21b6;
+  --color-brand-900: #4c1d95;
+
+  --color-ink-50: #f8fafc;
+  --color-ink-100: #f1f5f9;
+  --color-ink-200: #e2e8f0;
+  --color-ink-300: #cbd5e1;
+  --color-ink-400: #94a3b8;
+  --color-ink-500: #64748b;
+  --color-ink-600: #475569;
+  --color-ink-700: #334155;
+  --color-ink-800: #1e293b;
+  --color-ink-900: #0f172a;
+}
+
+/* ============================================================
+   DARK MODE — redefine tokens under .dark. Because Tailwind v4
+   utilities reference var(--color-*), overriding these cascades
+   to every bg-/text-/border-/ring- utility automatically.
+   The neutral `ink` ramp is REVERSED (canvas↔text), and accent
+   tint pairs (50/100 bg+ring, 600/700 text) are darkened/lightened.
+   ============================================================ */
+.dark {
+  color-scheme: dark;
+
+  --color-surface: #161f33;
+
+  /* neutral ramp, reversed: 50 = darkest canvas … 900 = lightest text */
+  --color-ink-50: #0a0f1c;   /* page canvas */
+  --color-ink-100: #111a2b;  /* insets, progress tracks, tint chips */
+  --color-ink-200: #26304a;  /* borders */
+  --color-ink-300: #3a4763;  /* stronger borders / toggle-off track */
+  --color-ink-400: #8b98b0;  /* muted text */
+  --color-ink-500: #9fabc2;
+  --color-ink-600: #b8c2d6;
+  --color-ink-700: #d1d9e6;
+  --color-ink-800: #e5eaf2;
+  --color-ink-900: #f3f6fb;  /* primary text */
+
+  /* brand — keep vivid, lift 600/700 for contrast on dark surfaces */
+  --color-brand-50: #211a3d;
+  --color-brand-100: #2c2352;
+  --color-brand-200: #3a2f66;
+  --color-brand-600: #8b74f0;
+  --color-brand-700: #a78bfa;
+
+  /* accent tint pairs */
+  --color-emerald-50: #0c2a1e;  --color-emerald-100: #123a29;
+  --color-emerald-600: #34d399; --color-emerald-700: #6ee7b7;
+  --color-amber-50: #2e2410;    --color-amber-100: #3d3115;
+  --color-amber-600: #fbbf24;   --color-amber-700: #fcd34d;
+  --color-rose-50: #2e1420;     --color-rose-100: #3d1a2a;
+  --color-rose-600: #fb7185;    --color-rose-700: #fda4af;
+  --color-sky-50: #0c2436;      --color-sky-100: #123249;
+  --color-sky-600: #38bdf8;     --color-sky-700: #7dd3fc;
+  --color-red-50: #2e1515;      --color-red-200: #4d2626;
+  --color-red-600: #f87171;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ink-300) transparent;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-ink-50);
+  color: var(--color-ink-800);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* subtle enter animation for lists / cards */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up { animation: fade-up 0.35s ease both; }
+
+@keyframes pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+.animate-pop { animation: pop 0.3s ease; }
+
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-ink-200);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.65), transparent);
+  animation: shimmer 1.3s infinite;
+}
+.dark .skeleton { background: var(--color-ink-200); }
+.dark .skeleton::after {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+}
