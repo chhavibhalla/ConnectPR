@@ -5,12 +5,13 @@ import {
   IconBookmark, IconBookmarkFill, IconExport, IconMail, IconVerified,
   IconChevron, IconCheck, IconChart, IconSpark,
 } from "../components/icons.jsx"
-import { CONTACTS, SAVED_LISTS, formatFollowers } from "../data/mock.js"
+import { CONTACTS, formatFollowers } from "../data/mock.js"
+import { downloadContactsCsv } from "../lib/csv.js"
 
 export default function Profile() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { isSaved, toggleSave, notify } = useStore()
+  const { isSaved, toggleSave, notify, lists, addToList } = useStore()
   const contact = CONTACTS.find((c) => c.id === id)
 
   if (!contact) {
@@ -48,7 +49,7 @@ export default function Profile() {
                     {saved ? <IconBookmarkFill size={16} /> : <IconBookmark size={16} />}
                     {saved ? "Saved" : "Add to list"}
                   </Button>
-                  <Button variant="primary" size="md" onClick={() => notify("Exported to CSV")}>
+                  <Button variant="primary" size="md" onClick={() => { downloadContactsCsv([contact], contact.name); notify("Exported to CSV") }}>
                     <IconExport size={16} /> Export
                   </Button>
                 </div>
@@ -137,20 +138,28 @@ export default function Profile() {
           <Card className="p-5">
             <h2 className="mb-3 font-semibold text-ink-900">Add to a list</h2>
             <div className="space-y-2">
-              {SAVED_LISTS.map((l) => (
-                <button
-                  key={l.id}
-                  onClick={() => notify(`Added to “${l.name}”`)}
-                  className="flex w-full items-center gap-3 rounded-xl border border-ink-200 p-3 text-left transition hover:border-brand-200 hover:bg-brand-50/40"
-                >
-                  <IconBookmark size={16} className="text-ink-400" />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium text-ink-800">{l.name}</div>
-                    <div className="text-xs text-ink-400">{l.contactIds.length} contacts</div>
-                  </div>
-                  <IconCheck size={15} className="text-ink-300" />
-                </button>
-              ))}
+              {lists.map((l) => {
+                const inList = l.contactIds.includes(contact.id)
+                return (
+                  <button
+                    key={l.id}
+                    onClick={() => addToList(l.id, contact)}
+                    className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition ${
+                      inList ? "border-brand-200 bg-brand-50/50" : "border-ink-200 hover:border-brand-200 hover:bg-brand-50/40"
+                    }`}
+                  >
+                    <IconBookmark size={16} className={inList ? "text-brand-500" : "text-ink-400"} />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-medium text-ink-800">{l.name}</div>
+                      <div className="text-xs text-ink-400">{l.contactIds.length} contacts</div>
+                    </div>
+                    {inList
+                      ? <span className="inline-grid h-5 w-5 place-items-center rounded-full bg-brand-100 text-brand-600"><IconCheck size={13} /></span>
+                      : <IconCheck size={15} className="text-ink-300" />}
+                  </button>
+                )
+              })}
+              {lists.length === 0 && <p className="text-sm text-ink-400">No lists yet — create one on the Lists page.</p>}
             </div>
           </Card>
 

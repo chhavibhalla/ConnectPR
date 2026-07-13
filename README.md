@@ -22,10 +22,26 @@ Opens at http://localhost:5173
 | **Dashboard** | `/` | Hero quick-search, usage meter, recent searches, saved-list & competitor snapshots |
 | **Search & Discover** | `/discover` | Filter sidebar (niche/city/platform/followers/engagement), **grid ↔ table toggle**, skeleton loaders, live-filtering feel, first-time onboarding empty state, no-results state |
 | **Contact Profile** | `/contact/:id` | Bio, stats, past collabs, contact info, add-to-list, export, brand-fit score |
-| **My Lists** | `/lists` | Campaign lists, bulk select, export CSV, per-list notes |
-| **Competitor Tracker** | `/competitors` | Add competitor, activity timeline (collabs + PR), You-vs-Them compare bars |
+| **My Lists** | `/lists` | Campaign lists, create/delete, bulk select, **real CSV export**, per-list notes — all persisted |
+| **Competitor Tracker** | `/competitors` | Add competitor (persisted), activity timeline, alerts feed, You-vs-Them compare bars |
 | **Pricing** | `/pricing` | Free/Pro/Team, monthly-yearly toggle, comparison table, INR + Razorpay/Stripe |
 | **Settings** | `/settings` | Profile, billing, team, notification toggles |
+
+## What actually works (not just visual)
+
+- **Real CSV export** (`src/lib/csv.js`) — downloads a proper `.csv` with a UTF-8
+  BOM (so Excel renders ₹ and Hindi), RFC-4180 quote escaping, dated filenames.
+  Wired into list export, bulk selection export, and single-contact export.
+- **Local persistence** (`localStorage`, via `store.jsx`) — saved contacts,
+  custom lists + membership, tracked competitors, alerts, and search usage all
+  survive a page reload. Add-to-list from a profile really adds; new lists and
+  new competitors stick.
+- **Competitor alerts feed** — a bell in the top bar with an unread badge and
+  dropdown, plus a "Recent alerts" card on the Competitor page. Tracking a new
+  competitor generates a fresh alert.
+
+See **[BACKEND_PLAN.md](./BACKEND_PLAN.md)** for the plan to make the rest real
+(Clerk auth + Supabase/Postgres + Razorpay billing + live data).
 
 ## Design system
 

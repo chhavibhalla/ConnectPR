@@ -7,7 +7,7 @@ import {
   IconChart, IconPlus,
 } from "../components/icons.jsx"
 import {
-  RECENT_SEARCHES, SAVED_LISTS, COMPETITORS, CONTACTS, EXAMPLE_SEARCHES, formatFollowers,
+  RECENT_SEARCHES, CONTACTS, EXAMPLE_SEARCHES, formatFollowers,
 } from "../data/mock.js"
 
 const LIST_COLOR = {
@@ -17,7 +17,7 @@ const LIST_COLOR = {
 }
 
 export default function Dashboard() {
-  const { searchesUsed, searchQuota, saved } = useStore()
+  const { searchesUsed, searchQuota, saved, lists: SAVED_LISTS, competitors: COMPETITORS } = useStore()
   const navigate = useNavigate()
   const [q, setQ] = useState("")
 

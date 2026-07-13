@@ -1,10 +1,10 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useStore } from "../store.jsx"
 import { Card, Badge, Button, Avatar, PlatformPill } from "../components/ui.jsx"
 import {
-  IconPlus, IconChart, IconNews, IconUsers, IconSpark,
+  IconPlus, IconChart, IconNews, IconUsers, IconSpark, IconBell, IconTrash,
 } from "../components/icons.jsx"
-import { COMPETITORS, YOUR_BRAND } from "../data/mock.js"
+import { YOUR_BRAND } from "../data/mock.js"
 
 function TimelineIcon({ type }) {
   if (type === "press")
@@ -40,10 +40,25 @@ function CompareBar({ label, you, them, suffix = "" }) {
 }
 
 export default function Competitors() {
-  const { notify } = useStore()
+  const { competitors, trackCompetitor, alerts, notify } = useStore()
   const [input, setInput] = useState("")
-  const [activeId, setActiveId] = useState(COMPETITORS[0].id)
-  const active = COMPETITORS.find((k) => k.id === activeId)
+  const [activeId, setActiveId] = useState(competitors[0]?.id)
+  const active = competitors.find((k) => k.id === activeId) || competitors[0]
+
+  // if the tracked set changes (added/removed), keep a valid selection
+  useEffect(() => {
+    if (!competitors.find((k) => k.id === activeId)) setActiveId(competitors[0]?.id)
+  }, [competitors, activeId])
+
+  const submit = (e) => {
+    e.preventDefault()
+    if (!input.trim()) return
+    const created = trackCompetitor(input)
+    if (created) setActiveId(created.id)
+    setInput("")
+  }
+
+  const recentAlerts = alerts.slice(0, 4)
 
   return (
     <div className="space-y-5">
@@ -55,7 +70,7 @@ export default function Competitors() {
       {/* Add competitor */}
       <Card className="p-4">
         <form
-          onSubmit={(e) => { e.preventDefault(); if (input.trim()) { notify(`Now tracking ${input}`); setInput("") } }}
+          onSubmit={submit}
           className="flex flex-col gap-2 sm:flex-row sm:items-center"
         >
           <div className="flex flex-1 items-center gap-2 rounded-xl border border-ink-200 bg-surface px-3 py-1">
@@ -71,12 +86,19 @@ export default function Competitors() {
         </form>
       </Card>
 
+      {!active ? (
+        <Card className="flex flex-col items-center py-16 text-center">
+          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-ink-100 text-ink-400"><IconChart size={26} /></div>
+          <h3 className="mt-4 font-semibold text-ink-900">No competitors tracked yet</h3>
+          <p className="mt-1 max-w-sm text-sm text-ink-500">Add a brand name or handle above to start monitoring their collabs and PR mentions.</p>
+        </Card>
+      ) : (
       <div className="grid gap-5 lg:grid-cols-3">
         {/* Competitor list + timeline */}
         <div className="space-y-4 lg:col-span-2">
           {/* selector */}
           <div className="flex flex-wrap gap-2">
-            {COMPETITORS.map((k) => (
+            {competitors.map((k) => (
               <button
                 key={k.id}
                 onClick={() => setActiveId(k.id)}
@@ -138,6 +160,35 @@ export default function Competitors() {
 
         {/* Head-to-head compare */}
         <div className="space-y-4">
+          {/* alerts feed */}
+          <Card className="p-5">
+            <div className="mb-3 flex items-center gap-2">
+              <IconBell size={17} className="text-brand-600" />
+              <h2 className="font-semibold text-ink-900">Recent alerts</h2>
+            </div>
+            {recentAlerts.length === 0 ? (
+              <p className="text-sm text-ink-400">No alerts yet — new collabs & mentions will appear here.</p>
+            ) : (
+              <ul className="space-y-3">
+                {recentAlerts.map((a) => (
+                  <li key={a.id} className="flex gap-3">
+                    <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg ${a.type === "press" ? "bg-sky-50 text-sky-600" : "bg-brand-50 text-brand-600"}`}>
+                      {a.type === "press" ? <IconNews size={15} /> : <IconUsers size={15} />}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="truncate text-sm font-semibold text-ink-900">{a.brand}</span>
+                        {!a.read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-rose-500" />}
+                        <span className="ml-auto shrink-0 text-[11px] text-ink-400">{a.date}</span>
+                      </div>
+                      <p className="truncate text-sm text-ink-600">{a.title}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+
           <Card className="p-5">
             <div className="flex items-center gap-2">
               <IconSpark size={17} className="text-brand-600" />
@@ -164,6 +215,7 @@ export default function Competitors() {
           </Card>
         </div>
       </div>
+      )}
     </div>
   )
 }

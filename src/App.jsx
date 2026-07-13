@@ -1,9 +1,9 @@
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Routes, Route, NavLink, useLocation, Link } from "react-router-dom"
 import { StoreProvider, useStore } from "./store.jsx"
 import {
   IconHome, IconCompass, IconBookmark, IconChart, IconTag, IconGear,
-  IconSearch, IconSpark, IconCheck, IconSun, IconMoon,
+  IconSearch, IconSpark, IconCheck, IconSun, IconMoon, IconBell, IconNews, IconUsers,
 } from "./components/icons.jsx"
 import { Badge } from "./components/ui.jsx"
 
@@ -110,6 +110,89 @@ function MobileNav() {
   )
 }
 
+function AlertsBell() {
+  const { alerts, unreadAlerts, markAlertsRead, clearAlerts } = useStore()
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onClick = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    const onKey = (e) => { if (e.key === "Escape") setOpen(false) }
+    document.addEventListener("mousedown", onClick)
+    document.addEventListener("keydown", onKey)
+    return () => { document.removeEventListener("mousedown", onClick); document.removeEventListener("keydown", onKey) }
+  }, [open])
+
+  const toggle = () => {
+    const next = !open
+    setOpen(next)
+    if (next && unreadAlerts) setTimeout(markAlertsRead, 900)
+  }
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={toggle}
+        aria-label="Alerts"
+        className="relative grid h-9 w-9 place-items-center rounded-xl border border-ink-200 bg-surface text-ink-500 transition-all hover:border-brand-200 hover:text-brand-600 active:scale-95"
+      >
+        <IconBell size={18} />
+        {unreadAlerts > 0 && (
+          <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white ring-2 ring-surface">
+            {unreadAlerts}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div className="animate-fade-up absolute right-0 z-40 mt-2 w-80 overflow-hidden rounded-2xl border border-ink-200 bg-surface shadow-xl">
+          <div className="flex items-center justify-between border-b border-ink-100 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-ink-900">Competitor alerts</h3>
+              {unreadAlerts > 0 && <Badge tone="rose">{unreadAlerts} new</Badge>}
+            </div>
+            {alerts.length > 0 && (
+              <button onClick={clearAlerts} className="text-xs font-medium text-ink-400 hover:text-ink-700">Clear</button>
+            )}
+          </div>
+          <div className="max-h-96 overflow-y-auto">
+            {alerts.length === 0 ? (
+              <div className="px-4 py-10 text-center">
+                <div className="mx-auto grid h-10 w-10 place-items-center rounded-xl bg-ink-100 text-ink-400"><IconBell size={18} /></div>
+                <p className="mt-3 text-sm text-ink-500">No alerts yet.</p>
+                <p className="text-xs text-ink-400">Track a competitor to start monitoring.</p>
+              </div>
+            ) : (
+              <ul className="divide-y divide-ink-100">
+                {alerts.map((a) => (
+                  <li key={a.id} className={`flex gap-3 px-4 py-3 ${a.read ? "" : "bg-brand-50/40"}`}>
+                    <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg ${a.type === "press" ? "bg-sky-50 text-sky-600" : "bg-brand-50 text-brand-600"}`}>
+                      {a.type === "press" ? <IconNews size={16} /> : <IconUsers size={16} />}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="truncate text-sm font-semibold text-ink-900">{a.brand}</span>
+                        {!a.read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-rose-500" />}
+                        <span className="ml-auto shrink-0 text-[11px] text-ink-400">{a.date}</span>
+                      </div>
+                      <p className="text-sm text-ink-700">{a.title}</p>
+                      <p className="mt-0.5 line-clamp-2 text-xs text-ink-400">{a.detail}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <Link to="/competitors" onClick={() => setOpen(false)} className="block border-t border-ink-100 px-4 py-2.5 text-center text-xs font-semibold text-brand-600 hover:bg-brand-50/40">
+            Open Competitor Tracker →
+          </Link>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function ThemeToggle() {
   const { theme, toggleTheme } = useStore()
   const dark = theme === "dark"
@@ -137,6 +220,7 @@ function Topbar() {
         />
       </div>
       <div className="ml-auto flex items-center gap-3 lg:ml-0">
+        <AlertsBell />
         <ThemeToggle />
         <Badge tone="emerald" className="hidden sm:inline-flex">Data updated · today</Badge>
         <div className="flex items-center gap-2">
