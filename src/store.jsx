@@ -9,13 +9,16 @@ const KEY = (k) => `cpr-${k}`
 
 // Generic localStorage-backed state. Reads once on init, writes on change.
 function usePersisted(key, initial) {
+  // Support a lazy initializer like React's useState: if `initial` is a
+  // function, call it to produce the seed value (used for seedAlerts).
+  const seed = () => (typeof initial === "function" ? initial() : initial)
   const [value, setValue] = useState(() => {
-    if (typeof window === "undefined") return initial
+    if (typeof window === "undefined") return seed()
     try {
       const raw = window.localStorage.getItem(KEY(key))
-      return raw != null ? JSON.parse(raw) : initial
+      return raw != null ? JSON.parse(raw) : seed()
     } catch {
-      return initial
+      return seed()
     }
   })
   useEffect(() => {
