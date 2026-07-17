@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { useStore } from "../store.jsx"
+import { useAuth } from "../auth.jsx"
 import { Card, Badge, Button, Avatar } from "../components/ui.jsx"
 import { IconPlus, IconSpark, IconCheck, IconMail } from "../components/icons.jsx"
 
@@ -27,6 +28,7 @@ function Field({ label, defaultValue, type = "text", placeholder }) {
 
 export default function Settings() {
   const { notify } = useStore()
+  const { cloud, user, signOut } = useAuth()
   const [tab, setTab] = useState("Profile")
 
   return (
@@ -71,6 +73,24 @@ export default function Settings() {
             <Button variant="ghost">Cancel</Button>
             <Button onClick={() => notify("Profile saved")}><IconCheck size={16} /> Save changes</Button>
           </div>
+        </Card>
+      )}
+
+      {tab === "Profile" && cloud && (
+        <Card className="flex max-w-2xl items-center justify-between gap-4 p-6">
+          <div className="min-w-0">
+            <h2 className="font-semibold text-ink-900">Account</h2>
+            <p className="truncate text-sm text-ink-500">
+              Signed in as <span className="font-medium text-ink-700">{user?.email}</span>
+            </p>
+          </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={async () => { await signOut(); notify("Signed out", "slate") }}
+          >
+            Log out
+          </Button>
         </Card>
       )}
 
